@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATM Xcelerator — Income Calculator</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  :root {
+    --bg: #050505;
+    --bg-card: #0f0f0f;
+    --bg-card-hover: #161616;
+    --border: #1f1f1f;
+    --border-hover: #2a2a2a;
+    --text: #ffffff;
+    --text-muted: #9a9a9a;
+    --text-dim: #5a5a5a;
+    --accent: #3fff52;
+    --accent-dim: #2dd83f;
+    --accent-glow: rgba(63, 255, 82, 0.15);
+    --accent-glow-strong: rgba(63, 255, 82, 0.25);
+    --warn: #ffb547;
+    --radius: 12px;
+  }
+  
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    background-image: 
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(63, 255, 82, 0.08), transparent),
+      radial-gradient(ellipse 60% 50% at 90% 100%, rgba(63, 255, 82, 0.05), transparent);
+    color: var(--text);
+    line-height: 1.5;
+    min-height: 100vh;
+    padding: 24px 16px;
+  }
+  
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  
+  .header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 20px 0;
+  }
+  
+  .brand-tag {
+    display: inline-block;
+    padding: 8px 18px;
+    background: var(--accent-glow);
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border-radius: 100px;
+    margin-bottom: 20px;
+    border: 1px solid var(--accent-dim);
+    text-shadow: 0 0 12px var(--accent-glow);
+  }
+  
+  h1 {
+    font-size: clamp(28px, 5vw, 42px);
+    font-weight: 700;
+    margin-bottom: 12px;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+  }
+  
+  .subtitle {
+    color: var(--text-muted);
+    font-size: 16px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1.3fr;
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+  
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+  
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+  }
+  
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .card-title::before {
+    content: '';
+    width: 4px;
+    height: 14px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+  
+  .input-group {
+    margin-bottom: 22px;
+  }
+  
+  .input-group:last-child { margin-bottom: 0; }
+  
+  .input-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  .input-label .label-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  
+  .input-label .label-help {
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  
+  .input-help {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 8px;
+    line-height: 1.4;
+  }
+  
+  .input-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+  
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    background: var(--bg);
+    border-radius: 100px;
+    outline: none;
+    border: 1px solid var(--border);
+  }
+  
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 0 4px var(--accent-glow);
+    transition: transform 0.15s;
+  }
+  
+  input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+  }
+  
+  input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: var(--accent);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 0 0 4px var(--accent-glow);
+  }
+  
+  .location-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 4px;
+  }
+  
+  .location-btn {
+    background: var(--bg);
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 10px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  
+  .location-btn:hover {
+    border-color: var(--text-dim);
+    background: var(--bg-card-hover);
+  }
+  
+  .location-btn.active {
+    border-color: var(--accent);
+    background: var(--accent-glow);
+  }
+  
+  .location-btn .loc-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  
+  .location-btn .loc-meta {
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+  
+  .location-btn.active .loc-meta {
+    color: var(--accent);
+  }
+  
+  .location-btn .loc-examples {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 8px;
+    line-height: 1.6;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+  
+  .location-btn.active .loc-examples {
+    border-top-color: var(--accent-dim);
+    color: var(--text-muted);
+  }
+  
+  .hero-result {
+    background: linear-gradient(135deg, var(--bg-card) 0%, #131313 100%);
+    border: 1px solid var(--accent-dim);
+    border-radius: var(--radius);
+    padding: 32px;
+    text-align: center;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 40px rgba(63, 255, 82, 0.08);
+  }
+  
+  .hero-result::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, var(--accent-glow-strong) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  
+  .hero-context {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    position: relative;
+  }
+  
+  .hero-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    position: relative;
+  }
+  
+  .hero-amount {
+    font-size: clamp(40px, 7vw, 56px);
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: -0.03em;
+    margin-bottom: 8px;
+    font-variant-numeric: tabular-nums;
+    position: relative;
+    text-shadow: 0 0 30px var(--accent-glow-strong);
+  }
+  
+  .hero-sub {
+    color: var(--text-muted);
+    font-size: 14px;
+    position: relative;
+  }
+  
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  
+  @media (max-width: 600px) {
+    .metrics { grid-template-columns: 1fr; }
+  }
+  
+  .metric {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+  }
+  
+  .metric-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+  
+  .metric-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+  
+  .metric-value.green { color: var(--accent); }
+  
+  .cta-section {
+    background: linear-gradient(135deg, #0f0f0f 0%, #161616 100%);
+    border: 1px solid var(--accent-dim);
+    border-radius: var(--radius);
+    padding: 40px 32px;
+    text-align: center;
+    margin-top: 32px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 60px rgba(63, 255, 82, 0.1);
+  }
+  
+  .cta-section::before {
+    content: '';
+    position: absolute;
+    top: -30%;
+    left: -10%;
+    width: 400px;
+    height: 200px;
+    background: radial-gradient(ellipse, var(--accent-glow) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  
+  .cta-eyebrow {
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+    position: relative;
+  }
+  
+  .cta-title {
+    font-size: clamp(22px, 4vw, 30px);
+    font-weight: 700;
+    margin-bottom: 12px;
+    letter-spacing: -0.02em;
+    position: relative;
+  }
+  
+  .cta-title .dm-pill {
+    display: inline-block;
+    background: var(--accent);
+    color: #000;
+    padding: 2px 14px;
+    border-radius: 8px;
+    font-weight: 800;
+    margin: 0 4px;
+    box-shadow: 0 0 20px var(--accent-glow-strong);
+  }
+  
+  .cta-text {
+    color: var(--text-muted);
+    max-width: 500px;
+    margin: 0 auto;
+    position: relative;
+  }
+  
+  .footnote {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 12px;
+    margin-top: 24px;
+    padding: 0 16px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header class="header">
+    <span class="brand-tag">ATM Xcelerator</span>
+    <h1>How Much Could an ATM Route Pay You?</h1>
+    <p class="subtitle">Helping individuals build financial freedom with ATMs. Pick your daily transactions, slide the fee, and see what you'd actually take home.</p>
+  </header>
+
+  <div class="grid">
+    
+    <div class="card">
+      <div class="card-title">Raw Numbers</div>
+      
+      <div class="input-group">
+        <div class="input-label">
+          <span class="label-text">ATMs Placed</span>
+          <span class="input-value" id="unitsValue">1 machine</span>
+        </div>
+        <input type="range" id="units" min="1" max="20" value="1" step="1">
+        <div class="input-help">Most people start with 1 and grow from there.</div>
+      </div>
+      
+      <div class="input-group">
+        <div class="input-label">
+          <span class="label-text">Surcharge per withdrawal</span>
+          <span class="input-value" id="feeValue">$3.50</span>
+        </div>
+        <input type="range" id="fee" min="2" max="6" value="3.5" step="0.25">
+        <div class="input-help">Most ATMs charge between $3 and $4.</div>
+      </div>
+      
+      <div class="input-group">
+        <div class="input-label">
+          <span class="label-text">Daily transactions</span>
+          <span class="label-help">Tap to choose</span>
+        </div>
+        <div class="location-grid">
+          <div class="location-btn" data-tx="5" data-key="Light">
+            <div class="loc-name">Light</div>
+            <div class="loc-meta">~5/day</div>
+            <div class="loc-examples">Laundromats<br>Barbershops<br>Smaller shops</div>
+          </div>
+          <div class="location-btn active" data-tx="9" data-key="Average">
+            <div class="loc-name">Average</div>
+            <div class="loc-meta">~9/day</div>
+            <div class="loc-examples">Gas stations<br>Smoke shops<br>Liquor stores</div>
+          </div>
+          <div class="location-btn" data-tx="15" data-key="Busy">
+            <div class="loc-name">Busy</div>
+            <div class="loc-meta">~15/day</div>
+            <div class="loc-examples">Popular bars<br>Nightclubs<br>Convenience stores</div>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+    
+    <div>
+      
+      <div class="hero-result">
+        <div class="hero-context" id="heroContext">If you put one ATM in an average spot today...</div>
+        <div class="hero-label">What You'd Take Home Each Year</div>
+        <div class="hero-amount" id="heroProfit">$7,371</div>
+        <div class="hero-sub" id="heroSub">≈ $614 hits your account every month</div>
+      </div>
+      
+      <div class="metrics">
+        <div class="metric">
+          <div class="metric-label">Each month</div>
+          <div class="metric-value green" id="monthlyProfit">$614</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Each year</div>
+          <div class="metric-value green" id="annualProfit">$7,371</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">3 years from now</div>
+          <div class="metric-value green" id="threeYearProfit">$22,113</div>
+        </div>
+      </div>
+      
+    </div>
+    
+  </div>
+  
+  <div class="cta-section">
+    <div class="cta-eyebrow">Want to see how this looks in your area?</div>
+    <h2 class="cta-title">DM us <span class="dm-pill">"ATM"</span> and we'll walk you through it.</h2>
+    <p class="cta-text">We'll talk through what makes a good location, how the numbers actually work, and whether this could fit you.</p>
+  </div>
+  
+  <p class="footnote">These are estimates based on the numbers you entered. Real results depend on the location, foot traffic, and how the area performs. Not a guarantee — just a starting point.</p>
+
+</div>
+
+<script>
+(function() {
+  var SHARE = 0.65;
+  var DAYS_PER_MONTH = 30;
+  var MONTHS_PER_YEAR = 12;
+  
+  function fmt(n) {
+    return '$' + Math.round(n).toLocaleString('en-US');
+  }
+  
+  var currentTx = 9;
+  var currentLocationKey = 'Average';
+  
+  var locationLabelsSingular = {
+    'Light': 'a light-traffic spot',
+    'Average': 'an average spot',
+    'Busy': 'a busy spot'
+  };
+  
+  var locationLabelsPlural = {
+    'Light': 'light-traffic spots',
+    'Average': 'average spots',
+    'Busy': 'busy spots'
+  };
+  
+  var unitsEl = document.getElementById('units');
+  var unitsValueEl = document.getElementById('unitsValue');
+  var feeEl = document.getElementById('fee');
+  var feeValueEl = document.getElementById('feeValue');
+  var heroContextEl = document.getElementById('heroContext');
+  var heroProfitEl = document.getElementById('heroProfit');
+  var heroSubEl = document.getElementById('heroSub');
+  var monthlyEl = document.getElementById('monthlyProfit');
+  var annualEl = document.getElementById('annualProfit');
+  var threeYearEl = document.getElementById('threeYearProfit');
+  var locationButtons = document.querySelectorAll('.location-btn');
+  
+  function calculate() {
+    var units = parseInt(unitsEl.value, 10) || 1;
+    var fee = parseFloat(feeEl.value) || 3.5;
+    
+    var dailyRev = currentTx * fee * units;
+    var monthlyRev = dailyRev * DAYS_PER_MONTH;
+    var annualRev = monthlyRev * MONTHS_PER_YEAR;
+    var monthlyProfit = monthlyRev * SHARE;
+    var annualProfit = annualRev * SHARE;
+    
+    unitsValueEl.textContent = units + (units === 1 ? ' machine' : ' machines');
+    feeValueEl.textContent = '$' + fee.toFixed(2);
+    
+    var contextSentence;
+    if (units === 1) {
+      contextSentence = 'If you put one ATM in ' + (locationLabelsSingular[currentLocationKey] || 'an average spot') + ' today...';
+    } else {
+      var plural = locationLabelsPlural[currentLocationKey] || 'average spots';
+      contextSentence = 'If you put ' + units + ' ATMs across ' + plural + ' today...';
+    }
+    heroContextEl.textContent = contextSentence;
+    heroProfitEl.textContent = fmt(annualProfit);
+    heroSubEl.textContent = '\u2248 ' + fmt(monthlyProfit) + ' hits your account every month';
+    
+    monthlyEl.textContent = fmt(monthlyProfit);
+    annualEl.textContent = fmt(annualProfit);
+    threeYearEl.textContent = fmt(annualProfit * 3);
+  }
+  
+  unitsEl.addEventListener('input', calculate);
+  feeEl.addEventListener('input', calculate);
+  
+  for (var i = 0; i < locationButtons.length; i++) {
+    locationButtons[i].addEventListener('click', function() {
+      for (var j = 0; j < locationButtons.length; j++) {
+        locationButtons[j].classList.remove('active');
+      }
+      this.classList.add('active');
+      currentTx = parseInt(this.getAttribute('data-tx'), 10);
+      currentLocationKey = this.getAttribute('data-key') || 'Average';
+      calculate();
+    });
+  }
+  
+  calculate();
+})();
+</script>
+
+</body>
+</html>
